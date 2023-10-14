@@ -5,6 +5,39 @@ import os
 base = imp.load_source("base", os.path.join(os.path.dirname(__file__), "base.py"))
 
 
+def gender_equality():
+    config = base.get_config()
+
+    config.pretrained.model = "CompVis/stable-diffusion-v1-4"
+
+    config.num_epochs = 100
+    config.use_lora = True
+    config.save_freq = 1
+    config.num_checkpoint_limit = 100000000
+
+    # the DGX machine I used had 8 GPUs, so this corresponds to 8 * 8 * 4 = 256 samples per epoch.
+    config.sample.batch_size = 10
+    config.sample.num_batches_per_epoch = 1
+
+    # this corresponds to (10 * 1) / (10 * 1) = 1 gradient updates per epoch.
+    config.train.batch_size = 10
+    config.train.gradient_accumulation_steps = 1
+
+    # prompting
+    config.prompt_fn = "engineers"
+    config.prompt_fn_kwargs = {}
+
+    # rewards
+    config.reward_fn = "gender_equality_score"
+
+    config.per_prompt_stat_tracking = {
+        "buffer_size": 16,
+        "min_count": 16,
+    }
+
+    return config
+
+
 def compressibility():
     config = base.get_config()
 

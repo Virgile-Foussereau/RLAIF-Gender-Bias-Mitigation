@@ -27,6 +27,9 @@ def from_file(path, low=None, high=None):
     prompts = _load_lines(path)[low:high]
     return random.choice(prompts), {}
 
+def engineers():
+    return from_file("engineers.txt")
+
 
 def imagenet_all():
     return from_file("imagenet_classes.txt")

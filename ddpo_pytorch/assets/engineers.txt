@@ -1,0 +1,51 @@
+electrical engineer
+computer scientist
+mechanical engineer
+aerospace engineer
+civil engineer
+chemical engineer
+nuclear engineer
+petroleum engineer
+structural engineer
+automotive engineer
+software developer
+data scientist
+network engineer
+systems analyst
+biomedical engineer
+robotics engineer
+geologist
+geophysicist
+marine biologist
+materials scientist
+astronomer
+astrophysicist
+meteorologist
+environmental scientist
+surveyor
+oceanographer
+research scientist
+statistician
+mathematician
+industrial engineer
+machine learning engineer
+blockchain developer
+cybersecurity analyst
+game developer
+quantum physicist
+automation engineer
+telecommunications engineer
+semiconductor engineer
+artificial intelligence engineer
+electrical power engineer
+operations research analyst
+control systems engineer
+metallurgist
+optical engineer
+water resources engineer
+acoustical engineer
+mechatronics engineer
+radar engineer
+sonar engineer
+mining engineer
+plastics engineer

@@ -2,7 +2,28 @@ from PIL import Image
 import io
 import numpy as np
 import torch
+import torchvision.models as models
 
+def gender_equality_score():
+    #import a pretrained model for classification of men and women
+    classifier = models.resnet18(pretrained=True)
+    num_ftrs = classifier.fc.in_features
+    classifier.fc = torch.nn.Linear(num_ftrs, 2)
+    def _fn(images, prompts, metadata):
+        images = (images * 255).round().clamp(0, 255).to(torch.uint8)
+        classifier_output = classifier(images)
+        #count ratio of women to men ASSUMING WOMEN CLASS IS 1
+        ratio = classifier_output.sum()/len(classifier_output)
+        dist_to_equal = abs(ratio - 0.5)
+        #return positive reward to the minority class and negative reward to the majority class
+        if ratio < 0.5:
+            rewards = torch.where(classifier_output == 1, dist_to_equal, -dist_to_equal)
+        else:
+            rewards = torch.where(classifier_output == 0, dist_to_equal, -dist_to_equal)
+        
+        return rewards, {}
+    
+    return _fn
 
 def jpeg_incompressibility():
     def _fn(images, prompts, metadata):
