@@ -27,9 +27,6 @@ def from_file(path, low=None, high=None):
     prompts = _load_lines(path)[low:high]
     return random.choice(prompts), {}
 
-def engineers():
-    return from_file("engineers.txt")
-
 
 def imagenet_all():
     return from_file("imagenet_classes.txt")
@@ -46,6 +43,11 @@ def imagenet_dogs():
 def simple_animals():
     return from_file("simple_animals.txt")
 
+def engineers():
+    return from_file("engineers.txt")
+
+def engineers_one_prompt():
+    return from_file("engineers_one_prompt.txt")
 
 def nouns_activities(nouns_file, activities_file):
     nouns = _load_lines(nouns_file)

@@ -24,13 +24,14 @@ from functools import partial
 import tqdm
 import tempfile
 from PIL import Image
+import json
 
 tqdm = partial(tqdm.tqdm, dynamic_ncols=True)
 
 
 FLAGS = flags.FLAGS
 config_flags.DEFINE_config_file("config", "config/base.py", "Training configuration.")
-
+#wandb.login(key='a61e442e6922af9f064f40ede9cd909e47a9a2a6')
 logger = get_logger(__name__)
 
 
@@ -350,6 +351,7 @@ def main(_):
                 pil = Image.fromarray((image.cpu().numpy().transpose(1, 2, 0) * 255).astype(np.uint8))
                 pil = pil.resize((256, 256))
                 pil.save(os.path.join(tmpdir, f"{i}.jpg"))
+            
             accelerator.log(
                 {
                     "images": [
@@ -359,6 +361,16 @@ def main(_):
                 },
                 step=global_step,
             )
+            # image_prompt_map = {}
+            # for i, (prompt, reward) in enumerate(zip(prompts, rewards)):
+                
+            #     image_prompt_map[os.path.join(tmpdir, f"{i}.jpg")] = f"{prompt:.25} | {reward:.2f}"
+            
+        # json_path = os.path.join("/global/scratch/users/chenxin0210/cs285-proj/ddpo-pytorch/wandb", "image_prompt_map.json")
+        # with open(json_path, "w") as f:
+        #     json.dump(image_prompt_map, f) 
+        # print("image_prompt_map json_path:", json_path)
+                
 
         # gather rewards across processes
         rewards = accelerator.gather(samples["rewards"]).cpu().numpy()
@@ -462,15 +474,24 @@ def main(_):
                             )
 
                         # ppo logic
-                        advantages = torch.clamp(
-                            sample["advantages"], -config.train.adv_clip_max, config.train.adv_clip_max
-                        )
                         ratio = torch.exp(log_prob - sample["log_probs"][:, j])
-                        unclipped_loss = -advantages * ratio
-                        clipped_loss = -advantages * torch.clamp(
-                            ratio, 1.0 - config.train.clip_range, 1.0 + config.train.clip_range
-                        )
-                        loss = torch.mean(torch.maximum(unclipped_loss, clipped_loss))
+                        if config.use_truly_ppo:
+                            Kl = 0.5 * torch.mean((log_prob - sample["log_probs"][:, j]) ** 2)
+                            pg_targets = torch.where((Kl >= config.train.policy_kl_range) & (ratio > 1), ratio*sample["advantages"] - config.train.policy_params * Kl, ratio*sample["advantages"]-config.train.policy_params * config.train.policy_kl_range)
+                            pg_loss = -torch.mean(pg_targets)
+
+                            entropy = -torch.mean(torch.exp(log_prob) * log_prob)
+
+                            loss = pg_loss - config.train.entropy_coef * entropy
+                        else:
+                            advantages = torch.clamp(
+                                sample["advantages"], -config.train.adv_clip_max, config.train.adv_clip_max
+                            )
+                            unclipped_loss = -advantages * ratio
+                            clipped_loss = -advantages * torch.clamp(
+                                ratio, 1.0 - config.train.clip_range, 1.0 + config.train.clip_range
+                            )
+                            loss = torch.mean(torch.maximum(unclipped_loss, clipped_loss))
 
                         # debugging values
                         # John Schulman says that (ratio - 1) - log(ratio) is a better
@@ -479,6 +500,9 @@ def main(_):
                         info["approx_kl"].append(0.5 * torch.mean((log_prob - sample["log_probs"][:, j]) ** 2))
                         info["clipfrac"].append(torch.mean((torch.abs(ratio - 1.0) > config.train.clip_range).float()))
                         info["loss"].append(loss)
+                        if config.use_truly_ppo:
+                            info["ratio*adv"].append(torch.max(ratio*sample["advantages"]))
+                            info["entropy"].append(entropy)
 
                         # backward pass
                         accelerator.backward(loss)
