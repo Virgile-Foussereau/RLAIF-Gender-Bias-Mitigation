@@ -1,6 +1,6 @@
 # Mitigating Gender Bias in Generative Models using RLAIF
 
-This is an implementation of a research project called "Diminishing Stereotype Bias in Image Generation Model using Reinforcement Learning Feedback". This work was done by Xin Chen and Virgile Foussereau for the course "Deep Reinforcement Learning" given by Prof. Sergey Levine at UC Berkeley in Fall 2023.
+This is an implementation of a research project called "[Diminishing Stereotype Bias in Image Generation Model using Reinforcement Learning Feedback](Mitigating_Gender_Bias_in_Generative%20Models_using_RLAIF.pdf)". This work was done by Xin Chen and Virgile Foussereau for the course "Deep Reinforcement Learning" given by Prof. Sergey Levine at UC Berkeley in Fall 2023.
 
 ![DDPO](workflow.png)
 
